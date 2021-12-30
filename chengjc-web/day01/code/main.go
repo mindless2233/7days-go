@@ -16,5 +16,10 @@ func main() {
 			fmt.Fprintf(writer, "Header[%q]=%q\n", k, v)
 		}
 	})
+	c.GET("/index", indexHandler)
+
 	c.Run(":8989")
+}
+func indexHandler(writer http.ResponseWriter, request *http.Request) {
+	fmt.Fprint(writer, "index")
 }
