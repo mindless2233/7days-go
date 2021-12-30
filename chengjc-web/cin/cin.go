@@ -2,6 +2,7 @@ package cin
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -21,10 +22,12 @@ func (engine *Engine) addRoute(method string, pattern string, handlerFunc Handle
 }
 
 func (engine *Engine) GET(pattern string, handlerFunc HandlerFunc) {
+	log.Printf("GET-%s", pattern)
 	engine.addRoute("GET", pattern, handlerFunc)
 }
 
 func (engine *Engine) POST(pattern string, handlerFunc HandlerFunc) {
+	log.Printf("POST-%s", pattern)
 	engine.addRoute("POST", pattern, handlerFunc)
 }
 func (engine *Engine) Run(addr string) (err error) {
