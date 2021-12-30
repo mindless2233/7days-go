@@ -1,24 +1,23 @@
 package cin
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 )
 
-type HandlerFunc func(http.ResponseWriter, *http.Request)
-
+//形参由(http.ResponseWriter, *http.Request)改为(*Context)
+//type HandlerFunc func(http.ResponseWriter, *http.Request)
+type HandlerFunc func(*Context)
 type Engine struct {
-	router map[string]HandlerFunc
+	router *router
 }
 
 func New() *Engine {
-	return &Engine{router: make(map[string]HandlerFunc)}
+	return &Engine{router: newRouter()}
 }
 
 func (engine *Engine) addRoute(method string, pattern string, handlerFunc HandlerFunc) {
-	key := method + "-" + pattern
-	engine.router[key] = handlerFunc
+	engine.router.addRouter(method, pattern, handlerFunc)
 }
 
 func (engine *Engine) GET(pattern string, handlerFunc HandlerFunc) {
@@ -35,10 +34,12 @@ func (engine *Engine) Run(addr string) (err error) {
 }
 
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	key := req.Method + "-" + req.URL.Path
-	if handler, ok := engine.router[key]; ok {
-		handler(w, req)
-	} else {
-		fmt.Fprint(w, "404 NOT FOUND: %s\n", req.URL)
-	}
+	//key := req.Method + "-" + req.URL.Path
+	//if handler, ok := engine.router[key]; ok {
+	//	handler(w, req)
+	//} else {
+	//	fmt.Fprint(w, "404 NOT FOUND: %s\n", req.URL)
+	//}
+	c := newContext(w, req)
+	engine.router.handle(c)
 }
