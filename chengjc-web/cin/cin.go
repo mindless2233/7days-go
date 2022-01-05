@@ -10,10 +10,24 @@ import (
 type HandlerFunc func(*Context)
 type Engine struct {
 	router *router
+	*RouterGroup
+	groups []*RouterGroup
+}
+
+//新增分则结构体
+type RouterGroup struct {
+	prefix      string
+	middlewares []HandlerFunc
+	parent      *RouterGroup
+	engine      *Engine
 }
 
 func New() *Engine {
-	return &Engine{router: newRouter()}
+
+	engine := &Engine{router: newRouter()}
+	engine.RouterGroup = &RouterGroup{engine: engine}
+	engine.groups = []*RouterGroup{engine.RouterGroup}
+	return engine
 }
 
 func (engine *Engine) addRoute(method string, pattern string, handlerFunc HandlerFunc) {
@@ -42,4 +56,25 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	//}
 	c := newContext(w, req)
 	engine.router.handle(c)
+}
+func (group *RouterGroup) Group(prefix string) *RouterGroup {
+
+	engine := group.engine
+	newGroup := &RouterGroup{
+		prefix: group.prefix + prefix,
+		parent: group,
+		engine: engine,
+	}
+	engine.groups = append(engine.groups, newGroup)
+	return newGroup
+}
+func (group *RouterGroup) addRoute(method string, comp string, handlerFunc HandlerFunc) {
+	pattern := group.prefix + comp
+	group.engine.router.addRouter(method, pattern, handlerFunc)
+}
+func (group *RouterGroup) GET(pattern string, handlerFunc HandlerFunc) {
+	group.addRoute("GET", pattern, handlerFunc)
+}
+func (group *RouterGroup) POST(pattern string, handlerFunc HandlerFunc) {
+	group.addRoute("POST", pattern, handlerFunc)
 }

@@ -1,6 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
+
+func main() {
+	stu := Student{}
+	stu.sayHi()
+	http.ListenAndServe("1111", nil)
+}
 
 type Person interface {
 	getName() string
@@ -14,7 +23,7 @@ func (s Student) getName() string {
 	return s.name
 }
 
-func main() {
-	var p Person = &Student{name: "111", age: 12}
-	fmt.Println(p.getName())
+func (s *Student) sayHi() {
+
+	fmt.Println("hi")
 }
