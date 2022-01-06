@@ -3,6 +3,7 @@ package cin
 import (
 	"log"
 	"net/http"
+	"strings"
 )
 
 //形参由(http.ResponseWriter, *http.Request)改为(*Context)
@@ -54,7 +55,20 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	//} else {
 	//	fmt.Fprint(w, "404 NOT FOUND: %s\n", req.URL)
 	//}
+
+	//2022/1/6注释
+	//c := newContext(w, req)
+	//engine.router.handle(c)
+
+	//2022/1/6新增
+	var middlewares []HandlerFunc
+	for _, group := range engine.groups {
+		if strings.HasPrefix(req.URL.Path, group.prefix) {
+			middlewares = append(middlewares, group.middlewares...)
+		}
+	}
 	c := newContext(w, req)
+	c.handlers = middlewares
 	engine.router.handle(c)
 }
 func (group *RouterGroup) Group(prefix string) *RouterGroup {
@@ -77,4 +91,7 @@ func (group *RouterGroup) GET(pattern string, handlerFunc HandlerFunc) {
 }
 func (group *RouterGroup) POST(pattern string, handlerFunc HandlerFunc) {
 	group.addRoute("POST", pattern, handlerFunc)
+}
+func (group *RouterGroup) Use(middlewares ...HandlerFunc) {
+	group.middlewares = append(group.middlewares, middlewares...)
 }

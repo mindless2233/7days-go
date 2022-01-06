@@ -78,12 +78,27 @@ func (r *router) handle(c *Context) {
 	//} else {
 	//	c.String(http.StatusNotFound, "NOT FOUND:&s\n", c.Path)
 	//}
+
+	//2022/1/6
+	//n, params := r.getRoute(c.Method, c.Path)
+	//if n != nil {
+	//	c.Parms = params
+	//	key := c.Method + "-" + n.pattern
+	//	r.handlers[key](c)
+	//} else {
+	//	c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
+	//}
+
+	//2022/1/6
 	n, params := r.getRoute(c.Method, c.Path)
 	if n != nil {
 		c.Parms = params
 		key := c.Method + "-" + n.pattern
-		r.handlers[key](c)
+		c.handlers = append(c.handlers, r.handlers[key])
 	} else {
-		c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
+		c.handlers = append(c.handlers, func(context *Context) {
+			c.String(http.StatusNotFound, "404 NOT FOUND: %s\n", c.Path)
+		})
 	}
+	c.Next()
 }
