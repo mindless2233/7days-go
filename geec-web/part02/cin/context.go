@@ -1,6 +1,10 @@
 package cin
 
-import "net/http"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
 
 //对Web服务来说，无非是根据请求*http.Request，构造响应http.ResponseWriter。
 //但是这两个对象提供的接口粒度太细，比如我们要构造一个完整的响应，
@@ -16,6 +20,8 @@ import "net/http"
 //因此，设计 Context 结构，扩展性和复杂性留在了内部，而对外简化了接口。
 //路由的处理函数，以及将要实现的中间件，参数都统一使用 Context 实例
 //Context 就像一次会话的百宝箱，可以找到任何东西。
+
+//给map[string]interface{}起了一个别名gee.H
 type H map[string]interface{}
 
 type Context struct {
@@ -31,4 +37,40 @@ func newContext(w http.ResponseWriter, req *http.Request) *Context {
 		Req:    req,
 		Path:   req.URL.Path,
 		Method: req.Method}
+}
+func (c *Context) Query(key string) string {
+	return c.Req.URL.Query().Get(key)
+}
+func (c *Context) PostFom(key string) string {
+	return c.Req.FormValue(key)
+}
+
+func (c *Context) Status(code int) {
+	c.StatusCode = code
+	c.Writer.WriteHeader(code)
+}
+func (c *Context) SetHeader(key, value string) {
+	c.Writer.Header().Set(key, value)
+}
+func (c *Context) String(code int, format string, values ...interface{}) {
+	c.SetHeader("Content-Type", "text/plain")
+	c.Status(code)
+	c.Writer.Write([]byte(fmt.Sprintf(format, values)))
+}
+func (c *Context) Data(code int, obj []byte) {
+	c.Status(code)
+	c.Writer.Write(obj)
+}
+func (c *Context) JSON(code int, obj interface{}) {
+	c.Status(code)
+	c.SetHeader("Content-Type", "application/json")
+	encoder := json.NewEncoder(c.Writer)
+	if err := encoder.Encode(obj); err != nil {
+		http.Error(c.Writer, err.Error(), 500)
+	}
+}
+func (c *Context) HTML(code int, html string) {
+	c.Status(code)
+	c.SetHeader("Content-Type", "text/html")
+	c.Writer.Write([]byte(html))
 }

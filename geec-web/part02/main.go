@@ -1,15 +1,18 @@
 package main
 
 import (
-	"cin"
+	"cin1"
 	"fmt"
-	"net/http"
 )
 
 func main() {
 	c := cin.New()
-	c.GET("/", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Fprintf(writer, "hello world")
-	})
+
+	c.GET("/", indexHandle)
+
 	c.Run(":9099")
+}
+
+func indexHandle(c *cin.Context) {
+	fmt.Fprintf(c.Writer, "sssss")
 }
