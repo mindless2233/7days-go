@@ -1,23 +1,25 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
 
-type mfc func(a, b int) int
-
-func sum(a, b int) int {
-	return a + b
+type Engine struct {
 }
 
-func diff(a, b int) int {
-	return a - b
+func (e Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	switch req.URL.Path {
+	case "/":
+		fmt.Println("/")
+	case "/hello":
+		fmt.Fprintf(w, "hello\n")
+	default:
+		fmt.Fprintf(w, "default\n")
+	}
 }
-
 func main() {
-	var fc mfc
-	fc = sum
-	fmt.Println(fc(1, 2))
-
-	fb := diff
-	fmt.Println(fb(1, 2))
-
+	engine := new(Engine)
+	log.Fatal(http.ListenAndServe(":9999", engine))
 }
