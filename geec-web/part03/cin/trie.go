@@ -44,12 +44,13 @@ func (n *node) matchChildren(part string) []*node {
 //查询功能，同样也是递归查询每一层的节点，退出规则是，匹配到了*，匹配失败，或者匹配到了第len(parts)层节点。
 
 func (n *node) insert(pattern string, parts []string, height int) {
-
+	// 如果入参的路由的深度(数组parts长度)与入参的深度相同，则直接将这个路由插入
 	if len(parts) == height {
 		n.pattern = pattern
 		return
 	}
 
+	//查看当前路由是否存在
 	part := parts[height]
 	child := n.matchChild(part)
 	if child == nil {
@@ -57,10 +58,12 @@ func (n *node) insert(pattern string, parts []string, height int) {
 		n.children = append(n.children, child)
 	}
 
+	//递归调用插入
 	child.insert(pattern, parts, height+1)
 }
 
 func (n *node) search(parts []string, height int) *node {
+	//
 	if len(parts) == height || strings.HasPrefix(n.part, "*") {
 		if n.pattern == "" {
 			return nil
@@ -77,6 +80,5 @@ func (n *node) search(parts []string, height int) *node {
 			return result
 		}
 	}
-
 	return nil
 }
